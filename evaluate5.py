@@ -3,16 +3,9 @@ import re
 from collections import Counter
 import pandas as pd
 import numpy as np
-from sklearn.metrics import (
-    accuracy_score,
-    precision_recall_fscore_support,
-    classification_report,
-    confusion_matrix,
-    ConfusionMatrixDisplay
-)
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support, classification_report, confusion_matrix
 from predict import get_label_space
 import argparse
-import matplotlib.pyplot as plt
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -108,40 +101,33 @@ def process_tuple_f1(labels, predictions, verbose=False):
     micro_f1 = 2 * (precision * recall) / (precision + recall + epsilon)
     return micro_f1
 
-def print_confusion_matrix(cm, labels):
-    """ Print the confusion matrix in a neat, readable text format. """
-    print("\nConfusion Matrix:")
-
-    # Calculate column widths
-    label_width = max(len(label) for label in labels) + 2
-    number_width = max(len(str(number)) for row in cm for number in row) + 2
-    total_width = label_width + (number_width * len(labels))
-
-    # Print top border
-    print("+" + "-" * (label_width - 1) + "+" + "-" * (number_width * len(labels)) + "+")
-
-    # Print header
-    print(f"|{'':{label_width-1}}|", end='')
+def print_formatted_confusion_matrix(y_true, y_pred, labels):
+    cm = confusion_matrix(y_true, y_pred, labels=labels)
+    
+    max_label_length = max(len(label) for label in labels)
+    cell_width = max(max_label_length, len(str(np.max(cm)))) + 2
+    
+    print("┌" + "─" * (cell_width + 1) * (len(labels) + 1) + "┐")
+    
+    header = "│ " + " " * cell_width + "│"
     for label in labels:
-        print(f"{label:^{number_width}}", end='')
-    print("|")
-
-    # Print separator
-    print("+" + "-" * (label_width - 1) + "+" + "-" * (number_width * len(labels)) + "+")
-
-    # Print rows
-    for i, true_label in enumerate(labels):
-        print(f"|{true_label:{label_width-1}}|", end='')
+        header += f" {label:<{cell_width}}│"
+    print(header)
+    
+    print("├" + "─" * (cell_width + 1) + "┼" + ("─" * (cell_width + 1) * len(labels)) + "┤")
+    
+    for i, row_label in enumerate(labels):
+        row = f"│ {row_label:<{cell_width}}│"
         for j in range(len(labels)):
-            print(f"{cm[i, j]:^{number_width}}", end='')
-        print("|")
+            row += f" {cm[i, j]:{cell_width}}│"
+        print(row)
+        
+        if i < len(labels) - 1:
+            print("├" + "─" * (cell_width + 1) + "┼" + ("─" * (cell_width + 1) * len(labels)) + "┤")
+    
+    print("└" + "─" * (cell_width + 1) * (len(labels) + 1) + "┘")
 
-    # Print bottom border
-    print("+" + "-" * (label_width - 1) + "+" + "-" * (number_width * len(labels)) + "+")
-
-
-
-def calculate_metric_and_errors(task, dataset, df, output_dir):
+def calculate_metric_and_errors(task, dataset, df):
     true_labels, pred_labels, ill_formed_idx = extract_labels(task, dataset, df)
     assert len(true_labels) == len(pred_labels)
 
@@ -150,38 +136,45 @@ def calculate_metric_and_errors(task, dataset, df, output_dir):
         accuracy = accuracy_score(true_labels, pred_labels)
         metric = accuracy
         metric_name = "accuracy"
+        print("\nConfusion Matrix:")
+        print_formatted_confusion_matrix(true_labels, pred_labels, label_space)
     elif task == "mast":
-        if dataset == "implicit":
+        if dataset == "implicit" or dataset == "compsent19":
             accuracy = accuracy_score(true_labels, pred_labels)
             metric = accuracy
             metric_name = "accuracy"
-        elif dataset == "compsent19":
-            accuracy = accuracy_score(true_labels, pred_labels)
-            metric = accuracy
-            metric_name = "accuracy"
+            print("\nConfusion Matrix:")
+            print_formatted_confusion_matrix(true_labels, pred_labels, label_space)
         elif dataset == "stance":
             results = classification_report(true_labels, pred_labels, output_dict=True, zero_division=0)
             f1_against = results['against']['f1-score']
             f1_favor = results['favor']['f1-score']
-            stance_f1 = (f1_against + f1_favor) / 2
+            stance_f1 = (f1_against+f1_favor) / 2
             metric = stance_f1
             metric_name = "macro f1 (w/t none)"
+            print("\nConfusion Matrix:")
+            print_formatted_confusion_matrix(true_labels, pred_labels, label_space)
         elif dataset in ["emotion", "hate", "offensive"]:
             results = classification_report(true_labels, pred_labels, output_dict=True, zero_division=0, labels=label_space)
             macro_f1 = results["macro avg"]["f1-score"]
             metric = macro_f1
             metric_name = "macro f1"
+            print("\nConfusion Matrix:")
+            print_formatted_confusion_matrix(true_labels, pred_labels, label_space)
         elif dataset == "irony":
             results = classification_report(true_labels, pred_labels, output_dict=True, zero_division=0)
             irony_f1 = results["irony"]["f1-score"]
             metric = irony_f1
             metric_name = "irony f1"
+            print("\nConfusion Matrix:")
+            print_formatted_confusion_matrix(true_labels, pred_labels, label_space)
         else:
             raise NotImplementedError
     elif task == "absa":
         if any(substring in dataset for substring in ["uabsa", "aste", "asqp"]):
             metric = process_tuple_f1(true_labels, pred_labels)
             metric_name = "micro_f1"
+            # Note: Confusion matrix is not applicable for ABSA tasks
         else:
             raise NotImplementedError
     else:
@@ -190,32 +183,6 @@ def calculate_metric_and_errors(task, dataset, df, output_dir):
     error_df = df[df["label_text"] != df["prediction"]]
     ill_df = df.iloc[ill_formed_idx]
 
-    # Calculate confusion matrix
-    cm = confusion_matrix(true_labels, pred_labels, labels=label_space)
-    
-    # Print text-based confusion matrix
-    print_confusion_matrix(cm, label_space)
-    
-    # Create ConfusionMatrixDisplay object
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=label_space)
-    
-    # Create a new figure
-    fig, ax = plt.subplots(figsize=(10, 8))
-    
-    # Plot the confusion matrix
-    disp.plot(ax=ax, cmap=plt.cm.Blues)
-    
-    # Set the title
-    plt.title(f'Confusion Matrix for {dataset}')
-    
-    # Save the figure
-    plt.savefig(os.path.join(output_dir, f'{dataset}_confusion_matrix.png'))
-    
-    # Close the figure to free up memory
-    plt.close(fig)
-
-    print(f"Confusion matrix for {dataset} saved as '{dataset}_confusion_matrix.png' in {output_dir}")
-
     return metric_name, metric, error_df, ill_df
 
 def process_file(task, dataset_name, dataset_path):
@@ -223,7 +190,7 @@ def process_file(task, dataset_name, dataset_path):
     pred_path = os.path.join(dataset_path, "prediction.csv")
     df = pd.read_csv(pred_path)
 
-    metric_name, metric, error_df, ill_df = calculate_metric_and_errors(task, dataset_name, df, dataset_path)
+    metric_name, metric, error_df, ill_df = calculate_metric_and_errors(task, dataset_name, df)
     print(f"{metric_name.title()} score for {dataset_name} = {metric}")
 
     error_file_path = os.path.join(dataset_path, "error.csv")
@@ -269,7 +236,7 @@ def main():
 
         with open(os.path.join(task_output_folder, "metric.txt"), 'w') as f:
             for k, v in metric_dict.items():
-                f.write(f"{k}: {v}\n")
+                f.write(f"{k}\t{v}\n")
 
 if __name__ == "__main__":
     main()
