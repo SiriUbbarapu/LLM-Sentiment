@@ -219,4 +219,8 @@ def main():
                     metric_dict[dataset.name] = process_file(task, dataset.name, dataset.path)
 
         with open(os.path.join(task_output_folder, "metric.txt"), 'w') as f:
-            for k, v in metric
+            for k, v in metric_dict.items():
+                f.write(f"{k}: {v}\n")
+
+if __name__ == "__main__":
+    main()
