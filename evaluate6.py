@@ -2,10 +2,10 @@ import os
 import re
 from collections import Counter
 import pandas as pd
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from tabulate import tabulate
-from predict import get_label_space
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support, classification_report, confusion_matrix
 import argparse
+from tabulate import tabulate  # Importing tabulate for better table representation
+from predict import get_label_space
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -102,23 +102,20 @@ def process_tuple_f1(labels, predictions, verbose=False):
     micro_f1 = 2 * (precision * recall) / (precision + recall + epsilon)
     return micro_f1
 
+def print_confusion_matrix(true_labels, pred_labels, label_space):
+    conf_matrix = confusion_matrix(true_labels, pred_labels, labels=label_space)
+    headers = [""] + [f"label_{i}" for i in label_space]
+    table = [ [f"label_{label}"] + list(row) for label, row in zip(label_space, conf_matrix) ]
+    print(tabulate(table, headers, tablefmt="grid"))
+
 def calculate_metric_and_errors(task, dataset, df):
     true_labels, pred_labels, ill_formed_idx = extract_labels(task, dataset, df)
     assert len(true_labels) == len(pred_labels)
 
     label_space = get_label_space(task, dataset)
-    
-    # Calculate confusion matrix
-    conf_matrix = confusion_matrix(true_labels, pred_labels, labels=label_space)
-    
-    # Display confusion matrix in table format using tabulate
-    conf_matrix_df = pd.DataFrame(conf_matrix, index=label_space, columns=label_space)
-    print(f"\nConfusion Matrix for {dataset}:")
-    print(tabulate(conf_matrix_df, headers='keys', tablefmt='grid'))
-    
     if task == "sc":
-        # sc uses accuracy
-        accuracy = accuracy_score(true_labels, pred_labels)
+        # sc use accuracy
+        accuracy =  accuracy_score(true_labels, pred_labels)
         metric = accuracy
         metric_name = "accuracy"
     elif task == "mast":
@@ -129,7 +126,7 @@ def calculate_metric_and_errors(task, dataset, df):
             metric_name = "accuracy"
         elif dataset == "compsent19":
             # comparative opinions
-            accuracy = accuracy_score(true_labels, pred_labels)
+            accuracy =  accuracy_score(true_labels, pred_labels)
             metric = accuracy
             metric_name = "accuracy"
         elif dataset == "stance":
@@ -137,7 +134,7 @@ def calculate_metric_and_errors(task, dataset, df):
             results = classification_report(true_labels, pred_labels, output_dict=True, zero_division=0)
             f1_against = results['against']['f1-score']
             f1_favor = results['favor']['f1-score']
-            stance_f1 = (f1_against + f1_favor) / 2
+            stance_f1 = (f1_against+f1_favor) / 2
             metric = stance_f1
             metric_name = "macro f1 (w/t none)"
         elif dataset in ["emotion", "hate", "offensive"]:
@@ -154,4 +151,72 @@ def calculate_metric_and_errors(task, dataset, df):
             metric_name = "irony f1"
         else:
             raise NotImplementedError
-    elif task
+    elif task == "absa":
+        if any(substring in dataset for substring in ["uabsa", "aste", "asqp"]):
+            metric = process_tuple_f1(true_labels, pred_labels)
+            metric_name = "micro_f1"
+        else:
+            raise NotImplementedError
+    else:
+        raise NotImplementedError
+
+    # Print confusion matrix
+    print_confusion_matrix(true_labels, pred_labels, label_space)
+
+    error_df = df[df["label_text"] != df["prediction"]]
+    ill_df = df.iloc[ill_formed_idx]
+
+    return metric_name, metric, error_df, ill_df
+
+def process_file(task, dataset_name, dataset_path):
+    print('-'*100)
+    pred_path = os.path.join(dataset_path, "prediction.csv")
+    df = pd.read_csv(pred_path)
+
+    metric_name, metric, error_df, ill_df = calculate_metric_and_errors(task, dataset_name, df)
+    print(f"{metric_name.title()} score for {dataset_name} = {metric}")
+
+    error_file_path = os.path.join(dataset_path, "error.csv")
+    error_df.to_csv(error_file_path, index=False)
+
+    if len(ill_df) > 0:
+        print(f"{len(ill_df)} ill-formed outputs")
+        ill_file_path = os.path.join(dataset_path, "ill.csv")
+        ill_df.to_csv(ill_file_path, index=False)
+
+    return metric
+
+def main():
+    args = parse_args()
+
+    setting = args.setting
+    shots = args.shots
+
+    if args.selected_tasks:
+        selected_tasks = eval(args.selected_tasks)
+    else:
+        selected_tasks = ["sc", "mast", "absa"]
+
+    if args.selected_datasets:
+        selected_datasets = eval(args.selected_datasets)
+    else:
+        selected_datasets = None
+
+    for task in selected_tasks:
+
+        if setting in ["zero-shot", "full", "majority", "random"]:
+            task_output_folder = f"outputs/{setting}/model_{args.model}/seed_{args.seed}/{task}/"
+        elif setting == "few-shot":
+            if args.slm_model_name:
+                task_output_folder = f"outputs/{args.slm_model_name.split('/')[-1]}/{setting}/shot_{shots}/model_{args.model}/seed_{args.seed}/{task}/"
+            else:
+                task_output_folder = f"outputs/{setting}/shot_{shots}/model_{args.model}/seed_{args.seed}/{task}/"
+        metric_dict = {}
+
+        for dataset in sorted(os.scandir(task_output_folder), key=lambda e: e.name):
+            if dataset.is_dir():
+                if selected_datasets is None or dataset.name in selected_datasets:
+                    metric_dict[dataset.name] = process_file(task, dataset.name, dataset.path)
+
+        with open(os.path.join(task_output_folder, "metric.txt"), 'w') as f:
+            for k, v in metric
