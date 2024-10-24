@@ -3,11 +3,10 @@ import re
 from collections import Counter
 import pandas as pd
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support, classification_report, confusion_matrix
+from predict import get_label_space  # Ensure predict.py is properly implemented
 import argparse
-from tabulate import tabulate  # Importing tabulate for better table representation
-from predict import get_label_space
-import subprocess
 
+# Parse command line arguments
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--setting", type=str, default="zero-shot", help="[zero-shot, few-shot, majority, random, full]")
@@ -15,11 +14,11 @@ def parse_args():
     parser.add_argument("--seed", type=int, default=42, help="random seed")
     parser.add_argument("--selected_tasks", type=str, default=None, help="list of string of tasks")
     parser.add_argument("--selected_datasets", type=str, default=None, help="list of string of datasets")
-    parser.add_argument("--model", type=str, default="chat", help="[chat]")
+    parser.add_argument("--model", type=str, default="chat", help="[chat]")  # Example for GPT-3.5/LLM
     parser.add_argument('--slm_model_name', type=str, default=None)
     return parser.parse_args()
 
-# Define a function to extract the label from a string
+# Extract label from a string using regex pattern
 def extract_label(string):
     pattern = r'{\[(.*?)\]}'
     match = re.search(pattern, string)
@@ -28,61 +27,23 @@ def extract_label(string):
     else:
         return "NONE"
 
+# Function to extract true and predicted labels
 def extract_labels(task, dataset, df):
     ill_formed_idx, diff_idx = [], []
-    if task == "sc":
-        true_labels = df["label_text"]
-        pred_labels = df["prediction"]
-    elif task == "mast":
-        if dataset == "stance":
-            true_labels = df["label_text"]
-            pred_labels = df["prediction"]
-        elif dataset in ["emotion", "hate", "irony", "offensive", "compsent19"]:
-            true_labels = df["label_text"]
-            pred_labels = df["prediction"]
-        elif dataset == "implicit":
-            true_labels = df["label_text"]
-            pred_labels = df["prediction"]
-        else:
-            raise NotImplementedError
-    elif task == "absa":
-        if any(substring in dataset for substring in ["uabsa", "aste", "asqp"]):
-            true_labels = []
-            pred_labels = []
-            for i in range(len(df["label_text"])):
-                gold_i = eval(df["label_text"][i])
-                try:
-                    pred_i = eval(df["prediction"][i])
-                except:
-                    ill_formed_idx.append(i)
-                    pred_i = []
-                if not isinstance(pred_i, list):
-                    pred_i = []
-                true_labels.append(gold_i)
-                pred_labels.append(pred_i)
-        else:
-            raise NotImplementedError
-    else:
-        raise NotImplementedError
-
-    if task != "absa":
-        true_labels = [str(i).lower().strip() for i in true_labels]
-        pred_labels = [str(i).lower().strip() for i in pred_labels]
-        pred_counter = Counter(pred_labels)
-        gold_counter = Counter(true_labels)
-
-        print("Gold:")
-        print_counter(gold_counter)
-        print("Pred:")
-        print_counter(pred_counter)
+    true_labels = df["label_text"]
+    pred_labels = df["prediction"]
+    true_labels = [str(i).lower().strip() for i in true_labels]
+    pred_labels = [str(i).lower().strip() for i in pred_labels]
 
     return true_labels, pred_labels, ill_formed_idx
 
+# Print label frequency counts
 def print_counter(freq_dict):
     total_len = sum(freq_dict.values())
     for item, freq in freq_dict.items():
-        print(f"{item}: {freq} ({freq / total_len * 100:.2f}%)")
+        print(f"{item}: {freq} ({freq/total_len*100:.2f}%)")
 
+# Calculate F1 score based on tuples of labels and predictions
 def process_tuple_f1(labels, predictions, verbose=False):
     tp, fp, fn = 0, 0, 0
     epsilon = 1e-7
@@ -95,80 +56,41 @@ def process_tuple_f1(labels, predictions, verbose=False):
         tp += len(gold.intersection(pred))
         fp += len(pred.difference(gold))
         fn += len(gold.difference(pred))
-    if verbose:
-        print('-' * 100)
-        print(gold, pred)
     precision = tp / (tp + fp + epsilon)
     recall = tp / (tp + fn + epsilon)
     micro_f1 = 2 * (precision * recall) / (precision + recall + epsilon)
     return micro_f1
 
-def print_confusion_matrix(true_labels, pred_labels, label_space):
-    conf_matrix = confusion_matrix(true_labels, pred_labels, labels=label_space)
-    headers = [""] + [f"label_{i}" for i in label_space]
-    table = [[f"label_{label}"] + list(row) for label, row in zip(label_space, conf_matrix)]
-    print(tabulate(table, headers, tablefmt="grid"))
-
+# Calculate metrics and generate error reports
 def calculate_metric_and_errors(task, dataset, df):
     true_labels, pred_labels, ill_formed_idx = extract_labels(task, dataset, df)
     assert len(true_labels) == len(pred_labels)
 
-    label_space = get_label_space(task, dataset)
-    if task == "sc":
-        accuracy = accuracy_score(true_labels, pred_labels)
-        metric = accuracy
-        metric_name = "accuracy"
-    elif task == "mast":
-        if dataset == "implicit":
-            accuracy = accuracy_score(true_labels, pred_labels)
-            metric = accuracy
-            metric_name = "accuracy"
-        elif dataset == "compsent19":
-            accuracy = accuracy_score(true_labels, pred_labels)
-            metric = accuracy
-            metric_name = "accuracy"
-        elif dataset == "stance":
-            results = classification_report(true_labels, pred_labels, output_dict=True, zero_division=0)
-            f1_against = results['against']['f1-score']
-            f1_favor = results['favor']['f1-score']
-            stance_f1 = (f1_against + f1_favor) / 2
-            metric = stance_f1
-            metric_name = "macro f1 (w/t none)"
-        elif dataset in ["emotion", "hate", "offensive"]:
-            results = classification_report(true_labels, pred_labels, output_dict=True, zero_division=0, labels=label_space)
-            macro_f1 = results["macro avg"]["f1-score"]
-            metric = macro_f1
-            metric_name = "macro f1"
-        elif dataset == "irony":
-            results = classification_report(true_labels, pred_labels, output_dict=True, zero_division=0)
-            irony_f1 = results["irony"]["f1-score"]
-            metric = irony_f1
-            metric_name = "irony f1"
-        else:
-            raise NotImplementedError
-    elif task == "absa":
-        if any(substring in dataset for substring in ["uabsa", "aste", "asqp"]):
-            metric = process_tuple_f1(true_labels, pred_labels)
-            metric_name = "micro_f1"
-        else:
-            raise NotImplementedError
-    else:
-        raise NotImplementedError
-
-    print_confusion_matrix(true_labels, pred_labels, label_space)
+    # Calculate various metrics
+    accuracy = accuracy_score(true_labels, pred_labels)
+    precision, recall, f1, _ = precision_recall_fscore_support(true_labels, pred_labels, average='weighted')
+    conf_matrix = confusion_matrix(true_labels, pred_labels)
 
     error_df = df[df["label_text"] != df["prediction"]]
     ill_df = df.iloc[ill_formed_idx]
 
-    return metric_name, metric, error_df, ill_df
+    return accuracy, precision, recall, f1, conf_matrix, error_df, ill_df
 
-def process_file(task, dataset_name, dataset_path, model):
-    print('-' * 100)
+# Process dataset for evaluation and print metrics
+def process_file(task, dataset_name, dataset_path):
+    print('-'*100)
     pred_path = os.path.join(dataset_path, "prediction.csv")
     df = pd.read_csv(pred_path)
 
-    metric_name, metric, error_df, ill_df = calculate_metric_and_errors(task, dataset_name, df)
-    print(f"{metric_name.title()} score for {dataset_name} with model {model} = {metric}")
+    accuracy, precision, recall, f1, conf_matrix, error_df, ill_df = calculate_metric_and_errors(task, dataset_name, df)
+    
+    # Display metrics
+    print(f"Accuracy for {dataset_name}: {accuracy}")
+    print(f"Precision for {dataset_name}: {precision}")
+    print(f"Recall for {dataset_name}: {recall}")
+    print(f"F1 Score for {dataset_name}: {f1}")
+    print("Confusion Matrix:")
+    print(conf_matrix)
 
     error_file_path = os.path.join(dataset_path, "error.csv")
     error_df.to_csv(error_file_path, index=False)
@@ -178,33 +100,38 @@ def process_file(task, dataset_name, dataset_path, model):
         ill_file_path = os.path.join(dataset_path, "ill.csv")
         ill_df.to_csv(ill_file_path, index=False)
 
-    return metric
+    return accuracy, precision, recall, f1
 
-def evaluate_model(model, seed, selected_tasks, selected_datasets):
+# Main function
+def main():
+    args = parse_args()
+
+    setting = args.setting
+    shots = args.shots
+
+    if args.selected_tasks:
+        selected_tasks = eval(args.selected_tasks)
+    else:
+        selected_tasks = ["sc", "mast", "absa"]
+
+    if args.selected_datasets:
+        selected_datasets = eval(args.selected_datasets)
+    else:
+        selected_datasets = None
+
     for task in selected_tasks:
-        task_output_folder = f"outputs/zero-shot/model_{model}/seed_{seed}/{task}/"
-        metric_dict = {}
+        if setting in ["zero-shot", "full", "majority", "random"]:
+            task_output_folder = f"outputs/{setting}/model_{args.model}/seed_{args.seed}/{task}/"
+        elif setting == "few-shot":
+            if args.slm_model_name:
+                task_output_folder = f"outputs/{args.slm_model_name.split('/')[-1]}/{setting}/shot_{shots}/model_{args.model}/seed_{args.seed}/{task}/"
+            else:
+                task_output_folder = f"outputs/{setting}/shot_{shots}/model_{args.model}/seed_{args.seed}/{task}/"
 
         for dataset in sorted(os.scandir(task_output_folder), key=lambda e: e.name):
             if dataset.is_dir():
                 if selected_datasets is None or dataset.name in selected_datasets:
-                    metric_dict[dataset.name] = process_file(task, dataset.name, dataset.path, model)
-
-        with open(os.path.join(task_output_folder, "metric.txt"), 'w') as f:
-            for k, v in metric_dict.items():
-                f.write(f"{k}: {v}\n")
-
-def main():
-    args = parse_args()
-
-    models = ["gpt-3.5", "text-davinci", "flan-t5", "flan-ul2"]
-    selected_tasks = eval(args.selected_tasks) if args.selected_tasks else ["sc", "mast", "absa"]
-    selected_datasets = eval(args.selected_datasets) if args.selected_datasets else None
-    seed = args.seed
-
-    for model in models:
-        print(f"Evaluating model: {model}")
-        evaluate_model(model, seed, selected_tasks, selected_datasets)
+                    process_file(task, dataset.name, dataset.path)
 
 if __name__ == "__main__":
     main()
