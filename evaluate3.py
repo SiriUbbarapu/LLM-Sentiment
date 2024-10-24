@@ -194,4 +194,22 @@ def calculate_metric_and_errors(task, dataset, df):
     return metric_name, metric, error_df, ill_df
 
 def process_file(task, dataset_name, dataset_path, model_name):
-    print
+    pred_path = os.path.join(dataset_path, "prediction.csv")
+    
+    # Load the dataset
+    df = pd.read_csv(pred_path)
+
+    # Generate predictions using the appropriate model
+    df_with_predictions = generate_predictions(model_name, task, dataset_name, df)
+
+    # Calculate the metric and retrieve errors
+    metric_name, metric_value, error_df, ill_df = calculate_metric_and_errors(task, dataset_name, df_with_predictions)
+
+    # Print the result for this dataset and model
+    print(f"{metric_name} for {dataset_name} ({model_name}) = {metric_value}")
+
+    # Save the error analysis (misclassified examples)
+    error_file_path = os.path.join(dataset_path, "error.csv")
+    error_df.to_csv(error_file_path, index=False)
+
+    # Save ill-formed predictions (if any)
