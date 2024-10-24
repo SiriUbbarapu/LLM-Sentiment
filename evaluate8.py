@@ -38,12 +38,6 @@ def extract_labels(task, dataset, df):
 
     return true_labels, pred_labels, ill_formed_idx
 
-# Print label frequency counts
-def print_counter(freq_dict):
-    total_len = sum(freq_dict.values())
-    for item, freq in freq_dict.items():
-        print(f"{item}: {freq} ({freq/total_len*100:.2f}%)")
-
 # Calculate F1 score based on tuples of labels and predictions
 def process_tuple_f1(labels, predictions, verbose=False):
     tp, fp, fn = 0, 0, 0
@@ -78,33 +72,29 @@ def calculate_metric_and_errors(task, dataset, df):
     return accuracy, precision, recall, f1, conf_matrix, error_df, ill_df
 
 # Plotting function for metrics
-def plot_metrics(datasets, accuracies, precisions, recalls, f1_scores):
-    x = range(len(datasets))
-    
-    plt.figure(figsize=(14, 8))
+def plot_metrics(dataset_name, accuracy, precision, recall, f1_score):
+    metrics = [accuracy, precision, recall, f1_score]
+    labels = ['Accuracy', 'Precision', 'Recall', 'F1 Score']
 
-    plt.bar(x, accuracies, width=0.2, label='Accuracy', color='blue', align='center')
-    plt.bar([p + 0.2 for p in x], precisions, width=0.2, label='Precision', color='orange', align='center')
-    plt.bar([p + 0.4 for p in x], recalls, width=0.2, label='Recall', color='green', align='center')
-    plt.bar([p + 0.6 for p in x], f1_scores, width=0.2, label='F1 Score', color='red', align='center')
+    plt.figure(figsize=(8, 5))
+    plt.bar(labels, metrics, color=['blue', 'orange', 'green', 'red'])
+    plt.ylim(0, 1)  # Set the y-axis limit to [0, 1] for better visibility
+    plt.ylabel('Score')
+    plt.title(f'Metrics for {dataset_name}')
+    plt.grid(axis='y', linestyle='--')
 
-    plt.xlabel('Datasets')
-    plt.ylabel('Scores')
-    plt.title('Performance Metrics for Each Dataset')
-    plt.xticks([p + 0.3 for p in x], datasets)
-    plt.legend()
-    plt.grid(axis='y')
+    # Show the plot
     plt.tight_layout()
     plt.show()
 
 # Process dataset for evaluation and print metrics
 def process_file(task, dataset_name, dataset_path):
-    print('-'*100)
+    print('-' * 100)
     pred_path = os.path.join(dataset_path, "prediction.csv")
     df = pd.read_csv(pred_path)
 
     accuracy, precision, recall, f1, conf_matrix, error_df, ill_df = calculate_metric_and_errors(task, dataset_name, df)
-    
+
     # Display metrics
     print(f"Accuracy for {dataset_name}: {accuracy}")
     print(f"Precision for {dataset_name}: {precision}")
@@ -120,6 +110,9 @@ def process_file(task, dataset_name, dataset_path):
         print(f"{len(ill_df)} ill-formed outputs")
         ill_file_path = os.path.join(dataset_path, "ill.csv")
         ill_df.to_csv(ill_file_path, index=False)
+
+    # Plot the metrics for this dataset
+    plot_metrics(dataset_name, accuracy, precision, recall, f1)
 
     return accuracy, precision, recall, f1
 
@@ -140,12 +133,6 @@ def main():
     else:
         selected_datasets = None
 
-    datasets = []
-    accuracies = []
-    precisions = []
-    recalls = []
-    f1_scores = []
-
     for task in selected_tasks:
         if setting in ["zero-shot", "full", "majority", "random"]:
             task_output_folder = f"outputs/{setting}/model_{args.model}/seed_{args.seed}/{task}/"
@@ -158,16 +145,7 @@ def main():
         for dataset in sorted(os.scandir(task_output_folder), key=lambda e: e.name):
             if dataset.is_dir():
                 if selected_datasets is None or dataset.name in selected_datasets:
-                    accuracy, precision, recall, f1 = process_file(task, dataset.name, dataset.path)
-                    # Collect metrics for plotting
-                    datasets.append(dataset.name)
-                    accuracies.append(accuracy)
-                    precisions.append(precision)
-                    recalls.append(recall)
-                    f1_scores.append(f1)
-
-    # Plot metrics after processing all datasets
-    plot_metrics(datasets, accuracies, precisions, recalls, f1_scores)
+                    process_file(task, dataset.name, dataset.path)
 
 if __name__ == "__main__":
     main()
