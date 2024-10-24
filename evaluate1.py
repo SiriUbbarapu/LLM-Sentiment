@@ -5,8 +5,7 @@ import pandas as pd
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support, classification_report, confusion_matrix
 from predict import get_label_space  # Ensure predict.py is properly implemented
 import argparse
-from tabulate import tabulate
-
+from tabulate import tabulate  # Importing tabulate for better table representation
 
 # Parse command line arguments
 def parse_args():
@@ -63,6 +62,13 @@ def process_tuple_f1(labels, predictions, verbose=False):
     micro_f1 = 2 * (precision * recall) / (precision + recall + epsilon)
     return micro_f1
 
+# Print confusion matrix in a grid format
+def print_confusion_matrix(true_labels, pred_labels, label_space):
+    conf_matrix = confusion_matrix(true_labels, pred_labels, labels=label_space)
+    headers = [""] + [f"label_{i}" for i in label_space]
+    table = [[f"label_{label}"] + list(row) for label, row in zip(label_space, conf_matrix)]
+    print(tabulate(table, headers, tablefmt="grid"))
+
 # Calculate metrics and generate error reports
 def calculate_metric_and_errors(task, dataset, df):
     true_labels, pred_labels, ill_formed_idx = extract_labels(task, dataset, df)
@@ -71,16 +77,13 @@ def calculate_metric_and_errors(task, dataset, df):
     # Calculate various metrics
     accuracy = accuracy_score(true_labels, pred_labels)
     precision, recall, f1, _ = precision_recall_fscore_support(true_labels, pred_labels, average='weighted')
-    conf_matrix = confusion_matrix(true_labels, pred_labels)
+    label_space = get_label_space(task, dataset)  # Get the label space for the task
+    print_confusion_matrix(true_labels, pred_labels, label_space)  # Print the confusion matrix
 
     error_df = df[df["label_text"] != df["prediction"]]
     ill_df = df.iloc[ill_formed_idx]
 
-    return accuracy, precision, recall, f1, conf_matrix, error_df, ill_df
-def print_confusion_matrix(conf_matrix, label_space):
-    headers = [""] + [f"label_{i}" for i in label_space]  # Column headers for predicted labels
-    table = [[f"label_{label}"] + list(row) for label, row in zip(label_space, conf_matrix)]  # Rows with true labels
-    print(tabulate(table, headers, tablefmt="grid"))  # Print the table in a grid format
+    return accuracy, precision, recall, f1, error_df, ill_df
 
 # Process dataset for evaluation and print metrics
 def process_file(task, dataset_name, dataset_path):
@@ -88,16 +91,13 @@ def process_file(task, dataset_name, dataset_path):
     pred_path = os.path.join(dataset_path, "prediction.csv")
     df = pd.read_csv(pred_path)
 
-    accuracy, precision, recall, f1, conf_matrix, error_df, ill_df = calculate_metric_and_errors(task, dataset_name, df)
+    accuracy, precision, recall, f1, error_df, ill_df = calculate_metric_and_errors(task, dataset_name, df)
     
     # Display metrics
     print(f"Accuracy for {dataset_name}: {accuracy}")
     print(f"Precision for {dataset_name}: {precision}")
     print(f"Recall for {dataset_name}: {recall}")
     print(f"F1 Score for {dataset_name}: {f1}")
-    print("Confusion Matrix:")
-    print_confusion_matrix(conf_matrix, label_space)
-
 
     error_file_path = os.path.join(dataset_path, "error.csv")
     error_df.to_csv(error_file_path, index=False)
