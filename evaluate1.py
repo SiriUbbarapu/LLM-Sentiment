@@ -2,11 +2,11 @@ import os
 import re
 from collections import Counter
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support, confusion_matrix
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support, classification_report, confusion_matrix
 from predict import get_label_space  # Ensure predict.py is properly implemented
 import argparse
+from tabulate import tabulate
+
 
 # Parse command line arguments
 def parse_args():
@@ -38,6 +38,12 @@ def extract_labels(task, dataset, df):
     pred_labels = [str(i).lower().strip() for i in pred_labels]
 
     return true_labels, pred_labels, ill_formed_idx
+
+# Print label frequency counts
+def print_counter(freq_dict):
+    total_len = sum(freq_dict.values())
+    for item, freq in freq_dict.items():
+        print(f"{item}: {freq} ({freq/total_len*100:.2f}%)")
 
 # Calculate F1 score based on tuples of labels and predictions
 def process_tuple_f1(labels, predictions, verbose=False):
@@ -71,19 +77,10 @@ def calculate_metric_and_errors(task, dataset, df):
     ill_df = df.iloc[ill_formed_idx]
 
     return accuracy, precision, recall, f1, conf_matrix, error_df, ill_df
-
-# Function to plot confusion matrix
-def plot_confusion_matrix(conf_matrix, dataset_name):
-    labels = ['neutral', 'positive', 'negative']  # You can adjust the labels as needed
-
-    # Create a confusion matrix heatmap using seaborn
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=labels, yticklabels=labels)
-    plt.title(f'Confusion Matrix for {dataset_name} - Model')
-    plt.xlabel('Predicted Label')
-    plt.ylabel('Actual Label')
-    plt.colorbar()
-    plt.show()
+def print_confusion_matrix(conf_matrix, label_space):
+    headers = [""] + [f"label_{i}" for i in label_space]  # Column headers for predicted labels
+    table = [[f"label_{label}"] + list(row) for label, row in zip(label_space, conf_matrix)]  # Rows with true labels
+    print(tabulate(table, headers, tablefmt="grid"))  # Print the table in a grid format
 
 # Process dataset for evaluation and print metrics
 def process_file(task, dataset_name, dataset_path):
@@ -99,14 +96,11 @@ def process_file(task, dataset_name, dataset_path):
     print(f"Recall for {dataset_name}: {recall}")
     print(f"F1 Score for {dataset_name}: {f1}")
     print("Confusion Matrix:")
-    print(conf_matrix)
+    print_confusion_matrix(conf_matrix, label_space)
 
-    # Save error data to CSV
+
     error_file_path = os.path.join(dataset_path, "error.csv")
     error_df.to_csv(error_file_path, index=False)
-
-    # Plot confusion matrix
-    plot_confusion_matrix(conf_matrix, dataset_name)
 
     if len(ill_df) > 0:
         print(f"{len(ill_df)} ill-formed outputs")
