@@ -1,10 +1,10 @@
 import os
 import re
-import seaborn as sns
-import matplotlib.pyplot as plt
 from collections import Counter
 import pandas as pd
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support, classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support, confusion_matrix
 from predict import get_label_space  # Ensure predict.py is properly implemented
 import argparse
 
@@ -39,12 +39,6 @@ def extract_labels(task, dataset, df):
 
     return true_labels, pred_labels, ill_formed_idx
 
-# Print label frequency counts
-def print_counter(freq_dict):
-    total_len = sum(freq_dict.values())
-    for item, freq in freq_dict.items():
-        print(f"{item}: {freq} ({freq/total_len*100:.2f}%)")
-
 # Calculate F1 score based on tuples of labels and predictions
 def process_tuple_f1(labels, predictions, verbose=False):
     tp, fp, fn = 0, 0, 0
@@ -78,6 +72,19 @@ def calculate_metric_and_errors(task, dataset, df):
 
     return accuracy, precision, recall, f1, conf_matrix, error_df, ill_df
 
+# Function to plot confusion matrix
+def plot_confusion_matrix(conf_matrix, dataset_name):
+    labels = ['neutral', 'positive', 'negative']  # You can adjust the labels as needed
+
+    # Create a confusion matrix heatmap using seaborn
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=labels, yticklabels=labels)
+    plt.title(f'Confusion Matrix for {dataset_name} - Model')
+    plt.xlabel('Predicted Label')
+    plt.ylabel('Actual Label')
+    plt.colorbar()
+    plt.show()
+
 # Process dataset for evaluation and print metrics
 def process_file(task, dataset_name, dataset_path):
     print('-'*100)
@@ -85,28 +92,21 @@ def process_file(task, dataset_name, dataset_path):
     df = pd.read_csv(pred_path)
 
     accuracy, precision, recall, f1, conf_matrix, error_df, ill_df = calculate_metric_and_errors(task, dataset_name, df)
-
+    
     # Display metrics
     print(f"Accuracy for {dataset_name}: {accuracy}")
     print(f"Precision for {dataset_name}: {precision}")
     print(f"Recall for {dataset_name}: {recall}")
     print(f"F1 Score for {dataset_name}: {f1}")
+    print("Confusion Matrix:")
+    print(conf_matrix)
 
-    # Plot and save a colorful confusion matrix
-    plt.figure(figsize=(10, 7))
-    sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', cbar=False,
-                xticklabels=sorted(df["label_text"].unique()), yticklabels=sorted(df["label_text"].unique()))
-    plt.title(f'Confusion Matrix for {dataset_name}')
-    plt.xlabel('Predicted Labels')
-    plt.ylabel('True Labels')
-    
-    # Save confusion matrix to file
-    conf_matrix_path = os.path.join(dataset_path, "confusion_matrix.png")
-    plt.savefig(conf_matrix_path)
-    plt.show()
-
+    # Save error data to CSV
     error_file_path = os.path.join(dataset_path, "error.csv")
     error_df.to_csv(error_file_path, index=False)
+
+    # Plot confusion matrix
+    plot_confusion_matrix(conf_matrix, dataset_name)
 
     if len(ill_df) > 0:
         print(f"{len(ill_df)} ill-formed outputs")
