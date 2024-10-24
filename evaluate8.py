@@ -3,7 +3,7 @@ import re
 from collections import Counter
 import pandas as pd
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support, classification_report, confusion_matrix
-import matplotlib.pyplot as plt  # Import matplotlib
+import matplotlib.pyplot as plt  # Importing matplotlib for plotting
 from predict import get_label_space  # Ensure predict.py is properly implemented
 import argparse
 
@@ -38,6 +38,12 @@ def extract_labels(task, dataset, df):
 
     return true_labels, pred_labels, ill_formed_idx
 
+# Print label frequency counts
+def print_counter(freq_dict):
+    total_len = sum(freq_dict.values())
+    for item, freq in freq_dict.items():
+        print(f"{item}: {freq} ({freq/total_len*100:.2f}%)")
+
 # Calculate F1 score based on tuples of labels and predictions
 def process_tuple_f1(labels, predictions, verbose=False):
     tp, fp, fn = 0, 0, 0
@@ -71,7 +77,7 @@ def calculate_metric_and_errors(task, dataset, df):
 
     return accuracy, precision, recall, f1, conf_matrix, error_df, ill_df
 
-# Plotting function for metrics
+# Create bar chart for metrics
 def plot_metrics(dataset_name, accuracy, precision, recall, f1_score):
     metrics = [accuracy, precision, recall, f1_score]
     labels = ['Accuracy', 'Precision', 'Recall', 'F1 Score']
@@ -94,7 +100,7 @@ def process_file(task, dataset_name, dataset_path):
     df = pd.read_csv(pred_path)
 
     accuracy, precision, recall, f1, conf_matrix, error_df, ill_df = calculate_metric_and_errors(task, dataset_name, df)
-
+    
     # Display metrics
     print(f"Accuracy for {dataset_name}: {accuracy}")
     print(f"Precision for {dataset_name}: {precision}")
@@ -103,6 +109,9 @@ def process_file(task, dataset_name, dataset_path):
     print("Confusion Matrix:")
     print(conf_matrix)
 
+    # Plot metrics
+    plot_metrics(dataset_name, accuracy, precision, recall, f1)
+
     error_file_path = os.path.join(dataset_path, "error.csv")
     error_df.to_csv(error_file_path, index=False)
 
@@ -110,9 +119,6 @@ def process_file(task, dataset_name, dataset_path):
         print(f"{len(ill_df)} ill-formed outputs")
         ill_file_path = os.path.join(dataset_path, "ill.csv")
         ill_df.to_csv(ill_file_path, index=False)
-
-    # Plot the metrics for this dataset
-    plot_metrics(dataset_name, accuracy, precision, recall, f1)
 
     return accuracy, precision, recall, f1
 
