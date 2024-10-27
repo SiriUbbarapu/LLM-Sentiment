@@ -1,4 +1,100 @@
 text,tuple,label_text
+I know I like Mello Yello (Coca-Cola product) better than Mountain Dew (Pepsi-Cola product) and have ever since I 1st tried Mello Yello and I'll only drink a Dew if I run out of Mello Yello here in Houston.,"['Coca-Cola', 'Pepsi', 'better']",better
+"Then again, without the Modern UI, Windows 8 doesn't offer many advantages, aside from faster performance, over Windows 7.","['Windows 8', 'Windows 7', 'worse']",worse
+the football team is decent but getting better! the basketball teams are awesome!the,"['football', 'basketball', 'worse']",worse
+"Now let's be clear; in this author's humble opinion, Apple is still way better than IBM.","['Apple', 'IBM', 'better']",better
+"First nite enjoyed with grilled porterhouse steak, 2nd nite (it tasted even better) with salad, candied carrots and crusty bread!","['steak', 'bread', 'worse']",worse
+"Java, also bytecode interpreted but static rather than dynamic [9] , is loads faster than Python.","['Java', 'Python', 'better']",better
+"The hardware (Sony) feels cheap and easy to break compared to my 4-year old Dell, which feels solid.","['Sony', 'Dell', 'worse']",worse
+"It would be faster to turn on Windows XP, wait 10 minutes for it to boot, and check email that way."" - TechTarget news director Bridget Botelho's husband, on the non-intuitive nature of Windows 8 on a Samsung Series 7 Slate tablet .","['Windows XP', 'Windows 8', 'better']",better
+"Java isn't too bad of a first language, but Python is a little easier to pick up.","['Java', 'Python', 'worse']",worse
+Much better than JavaScript e -mails/PHP.,"['JavaScript', 'PHP', 'worse']",worse
+"So when it comes to sports car made by BMW with their name and logo on the car, they have better line of sports car than Toyota.","['BMW', 'Toyota', 'better']",better
+"By about a chapter into the PHP book, I was thinking ""holy crap, this language is uglier than Perl"".","['PHP', 'Perl', 'worse']",worse
+The SBCL implementation of Lisp is on par with Java 6 Server and is significantly faster than Ruby or Python.,"['Java', 'Python', 'better']",better
+"The restaurant is doing much better,"" Sal reveals of Papa C's Eastside cafe.","['restaurant', 'cafe', 'better']",better
+"I think you have never tested Apple, they are far better than all other companies walking in the market including Sony.","['Apple', 'Sony', 'better']",better
+"As an aside, who in their right mind would buy an inferior GM or Ford car when a very well engineered European car, like that from Mercedes Benz and BMW can be purchased for a much lower price than now when the euro falls.","['Ford', 'BMW', 'worse']",worse
+"As he explained, ""Writing, reading, and organising e-mails is usually faster on my mobile device than on a laptop.","['mobile', 'laptop', 'better']",better
+Direct3D is now better than OpenGL Says John Carmack,"['Direct3D', 'OpenGL', 'better']",better
+"Don't learn Perl because even though it's a mature, fast and popular language, it's harder to learn than PHP.","['Perl', 'PHP', 'worse']",worse
+"Now this last system used only a 1.8GHz Opteron 144 processor as opposed to the 2.0GHz Opteron 246 of the IBM systems, so the Intel compiler is actually faster at 1093/1162.","['IBM', 'Intel', 'worse']",worse
+milk is better than beer!,"['milk', 'beer', 'better']",better
+"In supply-chain conversations, the Pacific Crest semiconductor team learned that Windows 7 inventory is moving faster than Windows 8.","['Windows 7', 'Windows 8', 'better']",better
+"While dozens of manufacturers will gladly slap an Intel, Microsoft, or NVIDIA advertisement on the palmrest of your brand new laptop, Google knows better than to partake in this annoying practice.","['Intel', 'Google', 'worse']",worse
+gamecube doesnt have better realistic graphics than the ps2? RE:4 anyone?,"['gamecube', 'ps2', 'worse']",worse
+I love the Swift because it's safer and easier than Objective-C.,"['Swift', 'Objective-C', 'better']",better
+Cooler server side scripting languages of the day like Ruby and Python are a lot less like C. Therefore learning PHP and JavaScript is a great place to start.,"['Python', 'JavaScript', 'worse']",worse
+"In my opinion, Windows 7 is far superior to Windows 8, for standard laptops and desktop PCs.","['Windows 7', 'Windows 8', 'better']",better
+"Then again, without the Modern UI, Windows 8 doesn't offer many advantages, aside from faster performance, over Windows 7.","['Windows 8', 'Windows 7', 'worse']",worse
+you can write serious programs in Lisp faster than in Python... ;-),"['Lisp', 'Python', 'better']",better
+"If you factor in population densities, then virginia being slower than california and Oregon may likely be due to more saturation because it's covering the entire Eastern US.","['virginia', 'california', 'worse']",worse
+"It is faster and easier then Python, far easier than C++ or C#/Java, etc... Is commonly used as a embedded scripting language, and has a few wonderful libraries to get started with.","['Python', 'Java', 'better']",better
+"This does NOT have to be Bluetooth tethering, by the way, I'm perfectly content to do this via USB if it makes things easier.","['Bluetooth', 'USB', 'worse']",worse
+"I know my 2000 Chrysler charges my phone faster than I can drain it, yet a friend's 20010 Toyota Matrix can't output enough power to charge the phone while using navigation.","['Chrysler', 'Toyota', 'better']",better
+"While Chrysler says the Sebring offers the same or better EPA volume as its competition, the car feels a bit more closely coupled and taller than the Ford Fusion or Toyota Camry.","['Chrysler', 'Toyota', 'better']",better
+"Nissan/Infiniti have been the Houdini of the motor industry, not very long ago it did look as though they might go under because of their horrendous debts but with Renault on board and some truly exciting new products the future looks a great deal better.","['Nissan', 'Renault', 'worse']",worse
+I know I like Mello Yello (Coca-Cola product) better than Mountain Dew (Pepsi-Cola product) and have ever since I 1st tried Mello Yello and I'll only drink a Dew if I run out of Mello Yello here in Houston.,"['Coca-Cola', 'Pepsi', 'better']",better
+"Unfortunately, the Bluetooth mouse goes through batteries much faster than ""regular"" USB wireless mice do.","['Bluetooth', 'USB', 'worse']",worse
+plastic frames are far harder to work with than wood.,"['plastic', 'wood', 'worse']",worse
+Google better at FOSS than Apple?,"['Google', 'Apple', 'better']",better
+"Coming from the PHP ""language"", we have far worse problems than the explicit self required in Python.","['PHP', 'Python', 'worse']",worse
+Performance: Performance wise Windows 8 seems to be faster and more efficient than Windows 7. ( via ),"['Windows 8', 'Windows 7', 'better']",better
+"Handling The Lexus LS 460 has a significantly smaller turning radius than the Audi A6, allowing much better maneuverability in and out of tight spots.","['Lexus', 'Audi', 'worse']",worse
+"Don't learn Perl because even though it's a mature, fast and popular language, it's harder to learn than PHP.","['Perl', 'PHP', 'worse']",worse
+"Also a bit of a bust is baseball, though, it's better than tennis.","['baseball', 'tennis', 'better']",better
+"Now let's be clear; in this author's humble opinion, Apple is still way better than IBM.","['Apple', 'IBM', 'better']",better
+"Final note: Without the transfers last year, missouri likely is worse than South carolina and Miss.","['missouri', 'carolina', 'worse']",worse
+"It does seem Amazon is using a lower quality display in new Kindle's, so you want the best looking screen maybe better to go with Kindle Keyboard, Nook STR or new Sony-T1.","['Amazon', 'Sony', 'worse']",worse
+"Finally, PostgreSQL is clearly better for some workloads out-of-the-box than MySQL is, especially for more complex queries.","['PostgreSQL', 'MySQL', 'better']",better
+This means that earnings at LinkedIn and amazon are likely to grow vastly faster than earnings at facebook over the next few years.,"['amazon', 'facebook', 'better']",better
+"california has better weather than oregon.""","['california', 'oregon', 'better']",better
+"So, yes, PHP is getting better and better while catching up with Java.","['PHP', 'Java', 'worse']",worse
+Natural stone pool coping has a superior advantage over pre-cast concrete and tile.,"['stone', 'concrete', 'better']",better
+"lacrosse was harder than Soccer by far, and still didn't come close to football.","['lacrosse', 'football', 'worse']",worse
+"I have written similar mechanisms in Perl, but prefer the PHP solution as it is easier.","['Perl', 'PHP', 'worse']",worse
+"(Riley) thinks baseball is harder than golf,"" Shields said.","['baseball', 'golf', 'worse']",worse
+"Graphics, shmaphics ;) The Nindendo wii has uglier graphics but way more creative games than the ps3.","['wii', 'ps3', 'better']",better
+It is also true that Python programs are easier to install than Haskell,"['Python', 'Haskell', 'better']",better
+Perl is surely harder to learn than Python.,"['Perl', 'Python', 'worse']",worse
+The studio folks at espn for CL was 1000% better than fox.,"['espn', 'fox', 'better']",better
+"But with the 3.73 rear axle as tested, the Chevrolet Silverado finished in third place pulling the trailer from 0 to 60-mph in 22.6 seconds, 6.5-seconds behind the Toyota Tundra and 1.1-seconds slower than the Dodge Ram.","['Chevrolet', 'Toyota', 'worse']",worse
+"It still doesn't have macros the way Lisp does and it doesn't have sexprs (yes, I really do like the parenthesis), but it is a better follow-on to C than C++ and still hits the system-programming domain that Java missed so bady.","['Lisp', 'Java', 'better']",better
+the football team is decent but getting better! the basketball teams are awesome!the,"['football', 'basketball', 'worse']",worse
+"My last PC had Windows 7 and I would use it from time to time until I realized Windows 8 was better, faster and had less problems.","['Windows 7', 'Windows 8', 'worse']",worse
+"My original guess was that division might be slower because, for a lot of cases (such as 42/5) the results are non-Integer, so it has to use (mildly slower) Floating-point hardware to find the result.","['Integer', 'Floating-point', 'better']",better
+"The restaurant is doing much better,"" Sal reveals of Papa C's Eastside cafe.","['restaurant', 'cafe', 'better']",better
+"By about a chapter into the PHP book, I was thinking ""holy crap, this language is uglier than Perl"".","['PHP', 'Perl', 'worse']",worse
+The SBCL implementation of Lisp is on par with Java 6 Server and is significantly faster than Ruby or Python.,"['Java', 'Python', 'better']",better
+"As an aside, who in their right mind would buy an inferior GM or Ford car when a very well engineered European car, like that from Mercedes Benz and BMW can be purchased for a much lower price than now when the euro falls.","['Ford', 'BMW', 'worse']",worse
+"Java, also bytecode interpreted but static rather than dynamic [9] , is loads faster than Python.","['Java', 'Python', 'better']",better
+"Now this last system used only a 1.8GHz Opteron 144 processor as opposed to the 2.0GHz Opteron 246 of the IBM systems, so the Intel compiler is actually faster at 1093/1162.","['IBM', 'Intel', 'worse']",worse
+gamecube doesnt have better realistic graphics than the ps2? RE:4 anyone?,"['gamecube', 'ps2', 'worse']",worse
+milk is better than beer!,"['milk', 'beer', 'better']",better
+"In supply-chain conversations, the Pacific Crest semiconductor team learned that Windows 7 inventory is moving faster than Windows 8.","['Windows 7', 'Windows 8', 'better']",better
+"Java isn't too bad of a first language, but Python is a little easier to pick up.","['Java', 'Python', 'worse']",worse
+you can write serious programs in Lisp faster than in Python... ;-),"['Lisp', 'Python', 'better']",better
+"If you factor in population densities, then virginia being slower than california and Oregon may likely be due to more saturation because it's covering the entire Eastern US.","['virginia', 'california', 'worse']",worse
+"Don't learn Perl because even though it's a mature, fast and popular language, it's harder to learn than PHP.","['Perl', 'PHP', 'worse']",worse
+"It is faster and easier then Python, far easier than C++ or C#/Java, etc... Is commonly used as a embedded scripting language, and has a few wonderful libraries to get started with.","['Python', 'Java', 'better']",better
+I know I like Mello Yello (Coca-Cola product) better than Mountain Dew (Pepsi-Cola product) and have ever since I 1st tried Mello Yello and I'll only drink a Dew if I run out of Mello Yello here in Houston.,"['Coca-Cola', 'Pepsi', 'better']",better
+I love the Swift because it's safer and easier than Objective-C.,"['Swift', 'Objective-C', 'better']",better
+"While Chrysler says the Sebring offers the same or better EPA volume as its competition, the car feels a bit more closely coupled and taller than the Ford Fusion or Toyota Camry.","['Chrysler', 'Toyota', 'better']",better
+"Handling The Lexus LS 460 has a significantly smaller turning radius than the Audi A6, allowing much better maneuverability in and out of tight spots.","['Lexus', 'Audi', 'worse']",worse
+"Nissan/Infiniti have been the Houdini of the motor industry, not very long ago it did look as though they might go under because of their horrendous debts but with Renault on board and some truly exciting new products the future looks a great deal better.","['Nissan', 'Renault', 'worse']",worse
+"Then again, without the Modern UI, Windows 8 doesn't offer many advantages, aside from faster performance, over Windows 7.","['Windows 8', 'Windows 7', 'worse']",worse
+"(Riley) thinks baseball is harder than golf,"" Shields said.","['baseball', 'golf', 'worse']",worse
+"Finally, PostgreSQL is clearly better for some workloads out-of-the-box than MySQL is, especially for more complex queries.","['PostgreSQL', 'MySQL', 'better']",better
+the football team is decent but getting better! the basketball teams are awesome!the,"['football', 'basketball', 'worse']",worse
+"Now let's be clear; in this author's humble opinion, Apple is still way better than IBM.","['Apple', 'IBM', 'better']",better
+"But with the 3.73 rear axle as tested, the Chevrolet Silverado finished in third place pulling the trailer from 0 to 60-mph in 22.6 seconds, 6.5-seconds behind the Toyota Tundra and 1.1-seconds slower than the Dodge Ram.","['Chevrolet', 'Toyota', 'worse']",worse
+"Graphics, shmaphics ;) The Nindendo wii has uglier graphics but way more creative games than the ps3.","['wii', 'ps3', 'better']",better
+"My last PC had Windows 7 and I would use it from time to time until I realized Windows 8 was better, faster and had less problems.","['Windows 7', 'Windows 8', 'worse']",worse
+The studio folks at espn for CL was 1000% better than fox.,"['espn', 'fox', 'better']",better
+Natural stone pool coping has a superior advantage over pre-cast concrete and tile.,"['stone', 'concrete', 'better']",better
+"So, yes, PHP is getting better and better while catching up with Java.","['PHP', 'Java', 'worse']",worse
+"Java isn't too bad of a first language, but Python is a little easier to pick up.","['Java', 'Python', 'worse']",worse
+"In supply-chain conversations, the Pacific Crest semiconductor team learned that Windows 7 inventory is moving faster than Windows 8.","['Windows 7', 'Windows 8', 'better']",better
 And I think Microsoft will have more money to make better games than Sony.,"['Microsoft', 'Sony', 'better']",better
 There's also a whole bunch of things that Java can do way better (PHP can't even handle longs well!).,"['Java', 'PHP', 'better']",better
 But it is not legitimate to make up a myriad of excuses why Windows 8 is worse than Windows XP or Linux.,"['Windows 8', 'Windows XP', 'worse']",worse
