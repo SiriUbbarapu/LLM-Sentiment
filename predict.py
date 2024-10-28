@@ -416,7 +416,6 @@ def process_dataset(task, dataset, file_path, output_folder, api_key, setting, n
 
 # Function to process the task and process datasets
 def process_task(args, task, api_key, selected_datasets=None, ignored_datasets=None):
-    print(f"Using API Key: {api_key}")  # This line will print the API key
     setting = args.setting
     num_workers = args.num_workers
     shots = args.shots
@@ -483,7 +482,6 @@ def main():
     ignored_datasets = eval(args.ignored_datasets) if args.ignored_datasets else None
 
     api_key = args.api
-    print(f"Using API Key: {api_key}")  # This line will print the API key
     for task in selected_tasks:
         process_task(args, task, api_key, selected_datasets, ignored_datasets)
 
