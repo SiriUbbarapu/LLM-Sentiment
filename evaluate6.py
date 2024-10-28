@@ -2,10 +2,10 @@ import os
 import re
 from collections import Counter
 import pandas as pd
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support, classification_report, confusion_matrix
-import argparse
-from tabulate import tabulate  # Importing tabulate for better table representation
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support, classification_report
 from predict import get_label_space
+import argparse
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -18,6 +18,7 @@ def parse_args():
     parser.add_argument('--slm_model_name', type=str, default=None)
     return parser.parse_args()
 
+
 # Define a function to extract the label from a string
 def extract_label(string):
     pattern = r'{\[(.*?)\]}'
@@ -26,6 +27,7 @@ def extract_label(string):
         return match.group(1)
     else:
         return "NONE"
+
 
 def extract_labels(task, dataset, df):
     ill_formed_idx, diff_idx = [], []
@@ -69,7 +71,6 @@ def extract_labels(task, dataset, df):
         pred_labels = [str(i).lower().strip() for i in pred_labels]
         pred_counter = Counter(pred_labels)
         gold_counter = Counter(true_labels)
-
         print("Gold:")
         print_counter(gold_counter)
         print("Pred:")
@@ -77,10 +78,12 @@ def extract_labels(task, dataset, df):
 
     return true_labels, pred_labels, ill_formed_idx
 
+
 def print_counter(freq_dict):
     total_len = sum(freq_dict.values())
     for item, freq in freq_dict.items():
-        print(f"{item}: {freq} ({freq/total_len*100:.2f}%)")
+        print(f"{item}: {freq} ({freq / total_len * 100:.2f}%)")
+
 
 def process_tuple_f1(labels, predictions, verbose=False):
     tp, fp, fn = 0, 0, 0
@@ -95,18 +98,13 @@ def process_tuple_f1(labels, predictions, verbose=False):
         fp += len(pred.difference(gold))
         fn += len(gold.difference(pred))
     if verbose:
-        print('-'*100)
+        print('-' * 100)
         print(gold, pred)
     precision = tp / (tp + fp + epsilon)
     recall = tp / (tp + fn + epsilon)
     micro_f1 = 2 * (precision * recall) / (precision + recall + epsilon)
     return micro_f1
 
-def print_confusion_matrix(true_labels, pred_labels, label_space):
-    conf_matrix = confusion_matrix(true_labels, pred_labels, labels=label_space)
-    headers = [""] + [f"label_{i}" for i in label_space]
-    table = [ [f"label_{label}"] + list(row) for label, row in zip(label_space, conf_matrix) ]
-    print(tabulate(table, headers, tablefmt="grid"))
 
 def calculate_metric_and_errors(task, dataset, df):
     true_labels, pred_labels, ill_formed_idx = extract_labels(task, dataset, df)
@@ -115,7 +113,7 @@ def calculate_metric_and_errors(task, dataset, df):
     label_space = get_label_space(task, dataset)
     if task == "sc":
         # sc use accuracy
-        accuracy =  accuracy_score(true_labels, pred_labels)
+        accuracy = accuracy_score(true_labels, pred_labels)
         metric = accuracy
         metric_name = "accuracy"
     elif task == "mast":
@@ -126,7 +124,7 @@ def calculate_metric_and_errors(task, dataset, df):
             metric_name = "accuracy"
         elif dataset == "compsent19":
             # comparative opinions
-            accuracy =  accuracy_score(true_labels, pred_labels)
+            accuracy = accuracy_score(true_labels, pred_labels)
             metric = accuracy
             metric_name = "accuracy"
         elif dataset == "stance":
@@ -134,7 +132,7 @@ def calculate_metric_and_errors(task, dataset, df):
             results = classification_report(true_labels, pred_labels, output_dict=True, zero_division=0)
             f1_against = results['against']['f1-score']
             f1_favor = results['favor']['f1-score']
-            stance_f1 = (f1_against+f1_favor) / 2
+            stance_f1 = (f1_against + f1_favor) / 2
             metric = stance_f1
             metric_name = "macro f1 (w/t none)"
         elif dataset in ["emotion", "hate", "offensive"]:
@@ -160,16 +158,14 @@ def calculate_metric_and_errors(task, dataset, df):
     else:
         raise NotImplementedError
 
-    # Print confusion matrix
-    print_confusion_matrix(true_labels, pred_labels, label_space)
-
     error_df = df[df["label_text"] != df["prediction"]]
     ill_df = df.iloc[ill_formed_idx]
 
     return metric_name, metric, error_df, ill_df
 
+
 def process_file(task, dataset_name, dataset_path):
-    print('-'*100)
+    print('-' * 100)
     pred_path = os.path.join(dataset_path, "prediction.csv")
     df = pd.read_csv(pred_path)
 
@@ -186,11 +182,15 @@ def process_file(task, dataset_name, dataset_path):
 
     return metric
 
+
 def main():
     args = parse_args()
 
     setting = args.setting
     shots = args.shots
+
+    # Print the selected model
+    print(f"Using model: {args.model}")
 
     if args.selected_tasks:
         selected_tasks = eval(args.selected_tasks)
@@ -220,7 +220,8 @@ def main():
 
         with open(os.path.join(task_output_folder, "metric.txt"), 'w') as f:
             for k, v in metric_dict.items():
-                f.write(f"{k}: {v}\n")
+                f.write(f"{k}\t{v}\n")
+
 
 if __name__ == "__main__":
     main()
