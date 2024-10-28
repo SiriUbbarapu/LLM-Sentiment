@@ -483,7 +483,7 @@ def main():
     ignored_datasets = eval(args.ignored_datasets) if args.ignored_datasets else None
 
     api_key = args.api
-
+    print(f"Using API Key: {api_key}")  # This line will print the API key
     for task in selected_tasks:
         process_task(args, task, api_key, selected_datasets, ignored_datasets)
 
