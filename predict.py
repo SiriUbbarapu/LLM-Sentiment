@@ -50,7 +50,7 @@ def parallel_query_davinci_model(args):
 @retry(wait=wait_fixed(10), stop=stop_after_attempt(6), before=before_retry_fn)
 def query_chatgpt_model(api_key: str, prompt: str, model: str = "gpt-3.5-turbo", max_tokens: int = 256, temperature: float = 0):
     openai.api_key = api_key
-    print("API Key:",openai.api_key)
+    print(f"Using API Key: {api_key}")  # This line will print the API key
     try:
         completions = openai.ChatCompletion.create(
             model=model,
@@ -70,7 +70,6 @@ def query_chatgpt_model(api_key: str, prompt: str, model: str = "gpt-3.5-turbo",
 @retry(wait=wait_fixed(10), stop=stop_after_attempt(6), before=before_retry_fn)
 def query_davinci_model(api_key: str, prompt: str, model: str = "text-davinci-003", max_tokens: int = 256, temperature: float = 0):
     openai.api_key = api_key
-    print("API Key:",openai.api_key)
     try:
         completions = openai.Completion.create(
             model=model,
