@@ -50,7 +50,6 @@ def parallel_query_davinci_model(args):
 @retry(wait=wait_fixed(10), stop=stop_after_attempt(6), before=before_retry_fn)
 def query_chatgpt_model(api_key: str, prompt: str, model: str = "gpt-3.5-turbo", max_tokens: int = 256, temperature: float = 0):
     openai.api_key = api_key
-    print(f"Using API Key: {api_key}")  # This line will print the API key
     try:
         completions = openai.ChatCompletion.create(
             model=model,
@@ -417,7 +416,7 @@ def process_dataset(task, dataset, file_path, output_folder, api_key, setting, n
 
 # Function to process the task and process datasets
 def process_task(args, task, api_key, selected_datasets=None, ignored_datasets=None):
-
+    print(f"Using API Key: {api_key}")  # This line will print the API key
     setting = args.setting
     num_workers = args.num_workers
     shots = args.shots
