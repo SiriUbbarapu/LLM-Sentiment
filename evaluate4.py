@@ -2,17 +2,9 @@ import os
 import re
 from collections import Counter
 import pandas as pd
-import numpy as np
-from sklearn.metrics import (
-    accuracy_score,
-    precision_recall_fscore_support,
-    classification_report,
-    confusion_matrix,
-    ConfusionMatrixDisplay
-)
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support, classification_report
 from predict import get_label_space
 import argparse
-import matplotlib.pyplot as plt
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -25,6 +17,7 @@ def parse_args():
     parser.add_argument('--slm_model_name', type=str, default=None)
     return parser.parse_args()
 
+# Function to extract the label from a string
 def extract_label(string):
     pattern = r'{\[(.*?)\]}'
     match = re.search(pattern, string)
@@ -33,7 +26,7 @@ def extract_label(string):
     else:
         return "NONE"
 
-def extract_labels(task, dataset, df):
+def extract_labels(task, dataset, df, model_name):
     ill_formed_idx, diff_idx = [], []
     if task == "sc":
         true_labels = df["label_text"]
@@ -76,6 +69,7 @@ def extract_labels(task, dataset, df):
         pred_counter = Counter(pred_labels)
         gold_counter = Counter(true_labels)
 
+        print(f"Model: {model_name}")
         print("Gold:")
         print_counter(gold_counter)
         print("Pred:")
@@ -108,41 +102,8 @@ def process_tuple_f1(labels, predictions, verbose=False):
     micro_f1 = 2 * (precision * recall) / (precision + recall + epsilon)
     return micro_f1
 
-def print_confusion_matrix(cm, labels):
-    """
-    Print the confusion matrix in a neat, readable text format.
-    """
-    print("\nConfusion Matrix:")
-    
-    # Calculate column widths
-    label_width = max(len(label) for label in labels) + 2
-    number_width = max(len(str(number)) for row in cm for number in row) + 2
-    total_width = label_width + (number_width * len(labels))
-    
-    # Print top border
-    print("+" + "-" * (label_width - 1) + "+" + "-" * (number_width * len(labels)) + "+")
-    
-    # Print header
-    print(f"|{'':{label_width-1}}|", end='')
-    for label in labels:
-        print(f"{label:^{number_width}}", end='')
-    print("|")
-    
-    # Print separator
-    print("+" + "-" * (label_width - 1) + "+" + "-" * (number_width * len(labels)) + "+")
-    
-    # Print rows
-    for i, true_label in enumerate(labels):
-        print(f"|{true_label:{label_width-1}}|", end='')
-        for j in range(len(labels)):
-            print(f"{cm[i, j]:^{number_width}}", end='')
-        print("|")
-    
-    # Print bottom border
-    print("+" + "-" * (label_width - 1) + "+" + "-" * (number_width * len(labels)) + "+")
-
-def calculate_metric_and_errors(task, dataset, df, output_dir):
-    true_labels, pred_labels, ill_formed_idx = extract_labels(task, dataset, df)
+def calculate_metric_and_errors(task, dataset, df, model_name):
+    true_labels, pred_labels, ill_formed_idx = extract_labels(task, dataset, df, model_name)
     assert len(true_labels) == len(pred_labels)
 
     label_space = get_label_space(task, dataset)
@@ -163,7 +124,7 @@ def calculate_metric_and_errors(task, dataset, df, output_dir):
             results = classification_report(true_labels, pred_labels, output_dict=True, zero_division=0)
             f1_against = results['against']['f1-score']
             f1_favor = results['favor']['f1-score']
-            stance_f1 = (f1_against + f1_favor) / 2
+            stance_f1 = (f1_against+f1_favor) / 2
             metric = stance_f1
             metric_name = "macro f1 (w/t none)"
         elif dataset in ["emotion", "hate", "offensive"]:
@@ -190,48 +151,22 @@ def calculate_metric_and_errors(task, dataset, df, output_dir):
     error_df = df[df["label_text"] != df["prediction"]]
     ill_df = df.iloc[ill_formed_idx]
 
-    # Calculate confusion matrix
-    cm = confusion_matrix(true_labels, pred_labels, labels=label_space)
-    
-    # Print text-based confusion matrix
-    print_confusion_matrix(cm, label_space)
-    
-    # Create ConfusionMatrixDisplay object
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=label_space)
-    
-    # Create a new figure
-    fig, ax = plt.subplots(figsize=(10, 8))
-    
-    # Plot the confusion matrix
-    disp.plot(ax=ax, cmap=plt.cm.Blues)
-    
-    # Set the title
-    plt.title(f'Confusion Matrix for {dataset}')
-    
-    # Save the figure
-    plt.savefig(os.path.join(output_dir, f'{dataset}_confusion_matrix.png'))
-    
-    # Close the figure to free up memory
-    plt.close(fig)
-
-    print(f"Confusion matrix for {dataset} saved as '{dataset}_confusion_matrix.png' in {output_dir}")
-
+    print(f"{metric_name.title()} score for {model_name} on {dataset} = {metric}")
     return metric_name, metric, error_df, ill_df
 
-def process_file(task, dataset_name, dataset_path):
+def process_file(task, dataset_name, dataset_path, model_name):
     print('-'*100)
     pred_path = os.path.join(dataset_path, "prediction.csv")
     df = pd.read_csv(pred_path)
 
-    metric_name, metric, error_df, ill_df = calculate_metric_and_errors(task, dataset_name, df, dataset_path)
-    print(f"{metric_name.title()} score for {dataset_name} = {metric}")
+    metric_name, metric, error_df, ill_df = calculate_metric_and_errors(task, dataset_name, df, model_name)
 
-    error_file_path = os.path.join(dataset_path, "error.csv")
+    error_file_path = os.path.join(dataset_path, f"error_{model_name}.csv")
     error_df.to_csv(error_file_path, index=False)
 
     if len(ill_df) > 0:
         print(f"{len(ill_df)} ill-formed outputs")
-        ill_file_path = os.path.join(dataset_path, "ill.csv")
+        ill_file_path = os.path.join(dataset_path, f"ill_{model_name}.csv")
         ill_df.to_csv(ill_file_path, index=False)
 
     return metric
@@ -265,11 +200,11 @@ def main():
         for dataset in sorted(os.scandir(task_output_folder), key=lambda e: e.name):
             if dataset.is_dir():
                 if selected_datasets is None or dataset.name in selected_datasets:
-                    metric_dict[dataset.name] = process_file(task, dataset.name, dataset.path)
+                    metric_dict[dataset.name] = process_file(task, dataset.name, dataset.path, args.model)
 
-        with open(os.path.join(task_output_folder, "metric.txt"), 'w') as f:
+        with open(os.path.join(task_output_folder, f"metric_{args.model}.txt"), 'w') as f:
             for k, v in metric_dict.items():
-                f.write(f"{k}: {v}\n")
+                f.write(f"{k}\t{v}\n")
 
 if __name__ == "__main__":
     main()
